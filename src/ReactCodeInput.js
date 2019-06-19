@@ -4,10 +4,10 @@
  * https://github.com/40818419/react-code-input
  */
 
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { uuidv4 } from './utils';
+import {uuidv4} from './utils';
 
 const BACKSPACE_KEY = 8;
 const LEFT_ARROW_KEY = 37;
@@ -16,24 +16,34 @@ const RIGHT_ARROW_KEY = 39;
 const DOWN_ARROW_KEY = 40;
 const E_KEY = 69;
 
+const deserialize = (value, fields) => {
+  const input = [];
+  for (let i = 0; i < Number(fields); i += 1) {
+    if (i < 32) {
+      const val = value[i] || '';
+      input.push(val);
+    }
+  }
+
+  return input;
+};
+
+const serialize = input => input.join('');
+
 class ReactCodeInput extends Component {
   constructor(props) {
     super(props);
 
-    const { fields, type, isValid, disabled, filterKeyCodes, forceUppercase } = props;
-    let { value } = props;
+    const {fields, type, filterKeyCodes, forceUppercase} = props;
+    let {value} = props;
 
     if (forceUppercase) {
       value = value.toUpperCase();
     }
 
     this.state = {
-      value,
       fields,
       type,
-      input: [],
-      isValid,
-      disabled,
       filterKeyCodes,
       defaultInputStyle: {
         fontFamily: 'monospace',
@@ -51,24 +61,17 @@ class ReactCodeInput extends Component {
       },
     };
 
-    for (let i = 0; i < Number(this.state.fields); i += 1) {
-      if (i < 32) {
-        const value = this.state.value[i] || '';
-        this.state.input.push(value);
-      }
-    }
-
     this.textInput = [];
 
     this.uuid = uuidv4();
   }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    this.setState({
-      isValid: nextProps.isValid,
-      value: nextProps.value,
-      disabled: nextProps.disabled,
-    });
+  static getDerivedStateFromProps({value, isValid, disabled}, {fields}) {
+    return {
+      input: deserialize(value, fields),
+      isValid,
+      disabled,
+    }
   }
 
   handleBlur(e) {
@@ -76,7 +79,7 @@ class ReactCodeInput extends Component {
   }
 
   handleTouch(value) {
-    const { touch, untouch, name } = this.props;
+    const {touch, untouch, name} = this.props;
 
     if (typeof touch === 'function' && typeof untouch === 'function') {
       if (value === '') {
@@ -88,7 +91,7 @@ class ReactCodeInput extends Component {
   }
 
   handleChange(e) {
-    const { filterChars } = this.props;
+    const {filterChars} = this.props;
 
     let value = String(e.target.value);
 
@@ -135,9 +138,8 @@ class ReactCodeInput extends Component {
         newTarget.select();
       }
 
-      fullValue = input.join('');
+      fullValue = serialize(input);
 
-      this.setState({ value: input.join(''), input });
     }
 
     if (this.props.onChange && fullValue) {
@@ -170,9 +172,9 @@ class ReactCodeInput extends Component {
         this.textInput[target].value = '';
         input = this.state.input.slice();
         input[target] = '';
-        value = input.join('');
+        value = serialize(input);
 
-        this.setState({ value, input });
+        this.setState({value, input});
         if (this.textInput[target].value === '') {
           if (prevTarget) {
             prevTarget.focus();
@@ -222,8 +224,8 @@ class ReactCodeInput extends Component {
   }
 
   render() {
-    const { className, style = {}, inputStyle = {}, inputStyleInvalid = {}, type, autoFocus, pattern, inputMode } = this.props,
-      { disabled, input, isValid, defaultInputStyle } = this.state,
+    const {className, style = {}, inputStyle = {}, inputStyleInvalid = {}, type, autoFocus, pattern, inputMode} = this.props,
+      {disabled, input, isValid, defaultInputStyle} = this.state,
       styles = {
         container: style,
         input: isValid ? inputStyle : inputStyleInvalid,
