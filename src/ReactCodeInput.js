@@ -67,13 +67,15 @@ class ReactCodeInput extends Component {
   }
 
   static getDerivedStateFromProps({value, isValid, disabled}, {fields}) {
-    if(!value && this.textInput && this.textInput[0]) {
-      this.textInput[0].focus();
-    }
     return {
       input: deserialize(value, fields),
       isValid,
       disabled,
+    }
+  }
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if(!this.props.value && this.textInput && this.textInput[0]) {
+      this.textInput[0].focus();
     }
   }
 
